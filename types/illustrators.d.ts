@@ -1,8 +1,8 @@
 /* tslint:disable */
-import {Version, TreeNode} from "./components";
-import {ConfigurableInterface, AttributeContainer, DistrictOptions, StreetContainerOptions} from "./interfaces";
-import {Model} from "./models";
-import {Rule} from "./rules";
+import { Version, TreeNode } from "./components";
+import { ConfigurableInterface, AttributeContainer, DistrictOptions, StreetContainerOptions } from "./interfaces";
+import { Model } from "./models";
+import { Rule } from "./rules";
 
 export namespace appIllustrators {
     export abstract class base implements ConfigurableInterface {
@@ -56,14 +56,26 @@ export namespace appIllustrators {
         public constructor(model: Model, options?: StreetContainerOptions);
         public draw(version: Version): any;
     }
+
+    export class island extends base {
+        public setOptions: (options: AttributeContainer) => void;
+        public setOption: (key: string, value: any) => void;
+        public getOption: (key: string) => any;
+        public getOptions: () => AttributeContainer;
+
+        public constructor(model: Model, options: DistrictOptions);
+        public draw(version: Version): any;
+    }
 }
 
 import Illustrator = appIllustrators.base;
 import District = appIllustrators.district;
 import Evostreet = appIllustrators.evostreet;
+import Island = appIllustrators.island;
 
 export {
     District,
     Evostreet,
+    Island,
     Illustrator
 }

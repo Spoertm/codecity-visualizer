@@ -14,7 +14,8 @@ exports.components = {
 exports.illustrators = {
     'base':      require('./illustrator/Illustrator').Illustrator,
     'evostreet': require('./illustrator/Evostreet').Evostreet,
-    'district': require('./illustrator/District').District
+    'district': require('./illustrator/District').District,
+    'island': require('./illustrator/Island').Island
 };
 
 exports.containers = {
