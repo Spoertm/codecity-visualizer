@@ -59,6 +59,7 @@ export class IslandContainer extends SpecificContainer {
             }
 
             this.road = shape;
+            super.add(this.road);
         } else {
             throw new Error("Unknown Shape Type: " + shape);
         }
