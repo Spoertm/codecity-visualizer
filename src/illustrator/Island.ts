@@ -57,7 +57,6 @@ export class Island extends Illustrator {
         const margin = 100;
         for (const island of islandModels) {
             island.draw(origin, rotation);
-            (island as IslandContainer).road?.draw(island.position, rotation);
             origin.x += island.dimensions.width / 2 + margin;
         }
 
