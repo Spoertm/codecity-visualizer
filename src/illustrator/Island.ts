@@ -1,10 +1,11 @@
 import { Illustrator } from "./Illustrator";
-import { SpecificContainer } from "./container/Container";
-import { DistrictContainer, DistrictContainerOptions } from "./container/specific/Districts";
+import { Container, SpecificContainer } from "./container/Container";
+import { DistrictContainerOptions } from "./container/specific/Districts";
 import { Point } from "../components/Point";
 import { Illustration } from "./components/Illustration";
-import { Shape, House } from "./components/Shapes";
+import { Shape, House, Highway, Street } from "./components/Shapes";
 import { PlatformContainer } from "./container/universal/Platform";
+import { IslandContainer } from "./container/specific/IslandContainer";
 
 export interface IslandOptions extends AttributeContainer {
     "layout.tower"?: boolean;
@@ -41,7 +42,7 @@ export class Island extends Illustrator {
             "platform.height": 10,
             "platform.color": 0xFF0000,
 
-            "island.container": DistrictContainer,
+            "island.container": IslandContainer,
             "island.options": {}
         });
 
@@ -56,6 +57,7 @@ export class Island extends Illustrator {
         const margin = 100;
         for (const island of islandModels) {
             island.draw(origin, rotation);
+            (island as IslandContainer).road?.draw(island.position, rotation);
             origin.x += island.dimensions.width / 2 + margin;
         }
 
@@ -100,6 +102,7 @@ export class Island extends Illustrator {
             }
         }
 
+        container.add(this.createRoad(tree, version));
         return container;
     }
 
@@ -144,5 +147,49 @@ export class Island extends Illustrator {
         house.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
 
         return house;
+    }
+
+    private createRoad(node: TreeNodeInterface, version: VersionInterface, forceRoot: boolean = false): Street {
+        if (node.parent === null || forceRoot) {
+            return this.createHighway(node, version);
+        }
+
+        return this.createStreet(node, version);
+    }
+
+    private createHighway(node: TreeNodeInterface, version: VersionInterface): Street {
+        const defaultLayout = {
+            "dimensions.length": this.getOption("highway.length"),
+            "dimensions.height": 1,
+            "color": this.getOption("highway.color")
+        };
+
+        const highway = new Highway(String(node));
+        highway.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
+        
+        highway.dimensions.width = 250;
+        highway.position.x = 0;
+        highway.position.y = 0;
+        highway.position.z = 250;
+
+        return highway;
+    }
+
+    private createStreet(node: TreeNodeInterface, version: VersionInterface): Street {
+        const defaultLayout = {
+            "dimensions.length": this.getOption("street.length"),
+            "dimensions.height": 1,
+            "color": this.getOption("street.color")
+        };
+
+        const street = new Street(String(node));
+        street.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
+        
+        street.dimensions.width = 250;
+        street.position.x = 0;
+        street.position.y = 0;
+        street.position.z = 250;
+
+        return street;
     }
 }
