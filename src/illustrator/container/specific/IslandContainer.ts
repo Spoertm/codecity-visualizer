@@ -1,6 +1,6 @@
 import { SpecificContainer, UniversalContainer, Container } from "../Container";
 import { Lightmap } from "../universal/Lightmap";
-import { Shape, House, Street } from "../../components/Shapes";
+import { Shape, House, Street as Ferry, Street } from "../../components/Shapes";
 import { PlatformContainer } from "../universal/Platform";
 
 type containerFunction = (s: string, m: boolean) => UniversalContainer;
@@ -21,7 +21,6 @@ export class IslandContainer extends SpecificContainer {
     private houses: UniversalContainer;
     private districts: UniversalContainer;
     private platform: PlatformContainer;
-    public road: Street | null;
 
     constructor(key: string, options: IslandContainerOptions = {}) {
         super(key, options);
@@ -40,11 +39,10 @@ export class IslandContainer extends SpecificContainer {
         const houseContainer = this.getOption("houses.container");
         const platformContainer = this.getOption("platform.container");
 
-        this.road = null;
-
         this.houses = houseContainer(this.key + "_d", false);
         this.districts = districtContainer(this.key + "_d", false);
         this.platform = platformContainer(this.key, false);
+
         super.add(this.platform);
     }
 
@@ -53,13 +51,6 @@ export class IslandContainer extends SpecificContainer {
             this.districts.add(shape);
         } else if (shape instanceof House) {
             this.houses.add(shape);
-        } else if (shape instanceof Street) {
-            if (this.road !== null) {
-                throw new Error("StreetContainer can only have one road.");
-            }
-
-            this.road = shape;
-            super.add(this.road);
         } else {
             throw new Error("Unknown Shape Type: " + shape);
         }

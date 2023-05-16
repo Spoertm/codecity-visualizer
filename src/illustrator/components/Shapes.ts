@@ -1,5 +1,5 @@
-import {Cuboid} from "../../components/Cuboid";
-import {Point} from "../../components/Point";
+import { Cuboid } from "../../components/Cuboid";
+import { Point } from "../../components/Point";
 
 /**
  * All shapes occupy a square area.
@@ -76,10 +76,10 @@ export abstract class Shape {
     get displayDimensions(): CuboidInterface {
         const swap = this.rotation % 180;
         const l = this.dimensions.length + 2 * this.margin;
-        const w = this.dimensions.width  + 2 * this.margin;
+        const w = this.dimensions.width + 2 * this.margin;
         const h = this.dimensions.height + 2 * this.margin;
         return new Cuboid(
-            swap ? w  : l,
+            swap ? w : l,
             swap ? l : w,
             h
         );
@@ -88,10 +88,21 @@ export abstract class Shape {
     /**
      * Get the shapes centroid (with relative rotation)
      */
-    get centroid (): PointInterface {
+    get centroid(): PointInterface {
         return new Point(
             this.displayDimensions.length / 2,
             this.displayDimensions.width / 2
+        );
+    }
+
+    /**
+     * Get the shapes centroid (with relative rotation)
+     */
+    get centroid3D(): PointInterface {
+        return new Point(
+            this.displayDimensions.length / 2,
+            this.displayDimensions.width / 2,
+            this.displayDimensions.height / 2
         );
     }
 
@@ -113,10 +124,6 @@ export abstract class Shape {
      * Rotate the shape around the it's centroid (clockwise rotation).
      */
     public rotate(degrees: number) {
-        if (degrees % 90) {
-            throw new Error("Only 90° rotations allowed");
-        }
-
         this._attributes.rotation = (720 + this.rotation + degrees) % 360;
     }
 
@@ -131,6 +138,10 @@ export abstract class Shape {
             Math.sin(rad) * this.position.x + Math.cos(rad) * this.position.y,
             this.position.z
         );
+
+        if (this instanceof Street) {
+            console.log('test');
+        }
 
         this._absolutePosition = new Point(
             parentPosition.x + transformedRelativePosition.x,
@@ -152,7 +163,7 @@ export abstract class Shape {
 
         const swap = this._absoluteRotation % 180;
         const rotatedDimensions = new Cuboid(
-            swap ? this.dimensions.width  : this.dimensions.length,
+            swap ? this.dimensions.width : this.dimensions.length,
             swap ? this.dimensions.length : this.dimensions.width,
             this.dimensions.height
         );
@@ -163,7 +174,7 @@ export abstract class Shape {
         spatialInformation.position = this._absolutePosition;
         spatialInformation.rotation = this._absoluteRotation;
 
-        return [ spatialInformation ];
+        return [spatialInformation];
     }
 
     /**
@@ -215,23 +226,47 @@ export abstract class Shape {
 export class House extends Shape {
     constructor(key: string) {
         super(key);
-        this.updateAttributes({type: "house"});
+        this.updateAttributes({ type: "house" });
     }
 }
 
 export class Platform extends Shape {
     constructor(key: string) {
         super(key);
-        this.updateAttributes({type: "platform"});
+        this.updateAttributes({ type: "platform" });
     }
 }
 
 export class Street extends Shape {
     constructor(key: string) {
         super(key);
-        this.updateAttributes({type: "street"});
+        this.updateAttributes({ type: "street" });
     }
 }
 
 export class Highway extends Street {
+}
+
+export class Ferry extends Shape {
+    private startCentroid : PointInterface;
+    private endCentroid: PointInterface;
+
+    constructor(key: string, start: PointInterface, end: PointInterface) {
+        super(key);
+        this.updateAttributes({ type: "ferry" });
+
+        this.startCentroid = start;
+        this.endCentroid = end;
+
+        this.position.z = this.startCentroid.z < this.endCentroid.z ? this.startCentroid.z : this.endCentroid.z;
+        this.position.x = this.startCentroid.x;
+        this.position.y = this.startCentroid.y;
+
+        this.dimensions.length = Math.abs(this.startCentroid.y - this.endCentroid.y);
+
+        this.dimensions.width = Math.abs(this.startCentroid.y - this.endCentroid.y);
+    }
+
+    public finalize() {
+    }
 }

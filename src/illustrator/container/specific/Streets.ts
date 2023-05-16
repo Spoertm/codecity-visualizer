@@ -1,7 +1,7 @@
-import {Container, SpecificContainer, UniversalContainer} from "../Container";
-import {RowContainer} from "../universal/Row";
-import {Street, Shape, House, Highway} from "../../components/Shapes";
-import {PlatformContainer} from "../universal/Platform";
+import { Container, SpecificContainer, UniversalContainer } from "../Container";
+import { RowContainer } from "../universal/Row";
+import { Street, Shape, House, Highway } from "../../components/Shapes";
+import { PlatformContainer } from "../universal/Platform";
 
 interface HouseSegmentContainer {
     segments: string[];
@@ -212,7 +212,7 @@ export class StreetContainer extends SpecificContainer {
             const houseContainer: containerFunction = this.getOption("house.container");
             this.houses.segments.push(segmentIndex);
             this.houses.segmented[segmentIndex] = [];
-            this.houses.left[segmentIndex]  = houseContainer(this.key + "_" + segmentIndex + "_hl", false);
+            this.houses.left[segmentIndex] = houseContainer(this.key + "_" + segmentIndex + "_hl", false);
             this.houses.right[segmentIndex] = houseContainer(this.key + "_" + segmentIndex + "_hr", true);
             this.houses.left[segmentIndex].rotate(-90);
             this.houses.right[segmentIndex].rotate(-90);
@@ -229,7 +229,7 @@ export class StreetContainer extends SpecificContainer {
             const branchContainer: containerFunction = this.getOption("branch.container");
             this.branches.segments.push(segmentIndex);
             this.branches.segmented[segmentIndex] = [];
-            this.branches.left[segmentIndex]  = branchContainer(this.key + "_" + segmentIndex + "_bl", false);
+            this.branches.left[segmentIndex] = branchContainer(this.key + "_" + segmentIndex + "_bl", false);
             this.branches.right[segmentIndex] = branchContainer(this.key + "_" + segmentIndex + "_br", true);
             this.branches.left[segmentIndex].rotate(-90);
             this.branches.right[segmentIndex].rotate(-90);
@@ -240,7 +240,7 @@ export class StreetContainer extends SpecificContainer {
 
     private updateDimensions(): void {
         this.dimensions.length = this.getContainerLength();
-        this.dimensions.width  = this.getContainerWidth() + this.getOption("spacer.conclusive");
+        this.dimensions.width = this.getContainerWidth() + this.getOption("spacer.conclusive");
     }
 
     private putHousesOnPlatforms(): void {
@@ -450,7 +450,7 @@ export class StreetContainer extends SpecificContainer {
     }
 
     private getContainerLength(): number {
-        const leftLength  = this.getLeftBlockLength();
+        const leftLength = this.getLeftBlockLength();
         const rightLength = this.getRightBlockLength();
         const road = this.road as Street;
 

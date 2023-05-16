@@ -1,11 +1,14 @@
 import { Illustrator } from "./Illustrator";
-import { Container, SpecificContainer } from "./container/Container";
+import { Container, SpecificContainer, UniversalContainer } from "./container/Container";
 import { DistrictContainerOptions } from "./container/specific/Districts";
 import { Point } from "../components/Point";
 import { Illustration } from "./components/Illustration";
-import { Shape, House, Highway, Street } from "./components/Shapes";
+import { Shape, House, Street, Ferry } from "./components/Shapes";
 import { PlatformContainer } from "./container/universal/Platform";
 import { IslandContainer } from "./container/specific/IslandContainer";
+import { Lightmap } from "./container/universal/Lightmap";
+import { ConnectionContainer } from "./container/specific/ConnectionContainer";
+import { Version } from "../components/Version";
 
 export interface IslandOptions extends AttributeContainer {
     "layout.tower"?: boolean;
@@ -50,34 +53,36 @@ export class Island extends Illustrator {
     }
 
     public draw(version: VersionInterface): Illustration {
-        const islandModels = this.createIslandModels(this._model.getTree(), version);
+        const islandModel: Container = this.createIslandsContainer(this._model.getTree(), version);
 
         var origin = new Point(0, 0, 0);
         const rotation = 0;
-        const margin = 100;
-        for (const island of islandModels) {
-            island.draw(origin, rotation);
-            origin.x += island.dimensions.width / 2 + margin;
-        }
+
+        islandModel.draw(origin, rotation);
+
+        let roadsContainer = this.handleRoads(islandModel, version);
+        roadsContainer.draw(origin, rotation);
 
         const illustration = new Illustration(version);
-        for (const island of islandModels) {
-            for (const shape of island.getSpatialInformation()) {
-                illustration.addShape(shape);
-            }
+        for (const shape of islandModel.getSpatialInformation()) {
+            illustration.addShape(shape);
+        }
+
+        for (const shape of roadsContainer.getSpatialInformation()) {
+            illustration.addShape(shape);
         }
 
         return illustration;
     }
 
-    private createIslandModels(tree: TreeNodeInterface, version: VersionInterface): Shape[] {
-        const islands: Shape[] = [];
+    private createIslandsContainer(tree: TreeNodeInterface, version: VersionInterface): Container {
+        let lightmap = new Lightmap(String(this._model.getTree()));
 
         for (const childNode of tree.children) {
-            islands.push(this.createSpatialModel(childNode, version));
+            lightmap.add(this.createSpatialModel(childNode, version));
         }
 
-        return islands;
+        return lightmap;
     }
 
     private createSpatialModel(tree: TreeNodeInterface, version: VersionInterface): Shape {
@@ -101,7 +106,6 @@ export class Island extends Illustrator {
             }
         }
 
-        container.add(this.createRoad(tree, version));
         return container;
     }
 
@@ -148,46 +152,56 @@ export class Island extends Illustrator {
         return house;
     }
 
-    private createRoad(node: TreeNodeInterface, version: VersionInterface, forceRoot: boolean = false): Street {
-        if (node.parent === null || forceRoot) {
-            return this.createHighway(node, version);
+    private handleRoads(islandModel: Container, version: VersionInterface): ConnectionContainer {
+        let roadContainer = new ConnectionContainer("CC");
+
+        let houses: House[] = this.findHouses(islandModel.shapes);
+
+        let embedHelperHouse = houses.filter(s => s.key.includes("EmbedHelper.cs"))[0];
+        let ddStatsResponseHouse = houses.filter(s => s.key.includes("DdStatsFullRunResponse.cs"))[0];
+
+        let newferry = this.createFerry(
+            "EmbedHelper-DdStatsFullRunResponse",
+            embedHelperHouse.centroid3D,
+            ddStatsResponseHouse.centroid3D,
+            version);
+
+        roadContainer.add(newferry);
+        roadContainer.finalize();
+
+        return roadContainer;
+    }
+
+    private findHouses(shapes: Shape[]): House[] {
+        const houses: House[] = [];
+
+        for (const shape of shapes) {
+            if (shape instanceof House) {
+                houses.push(shape);
+            }
+
+            if (shape instanceof Container) {
+                const childHouses = this.findHouses(shape.shapes);
+                houses.push(...childHouses);
+            }
         }
 
-        return this.createStreet(node, version);
+        return houses;
     }
 
-    private createHighway(node: TreeNodeInterface, version: VersionInterface): Street {
-        const defaultLayout = {
-            "dimensions.length": this.getOption("highway.length"),
-            "dimensions.height": 1,
-            "color": this.getOption("highway.color")
-        };
-
-        const highway = new Highway(String(node));
-        highway.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
-        
-        highway.dimensions.width = 250;
-        highway.position.x = 0;
-        highway.position.y = 0;
-        highway.position.z = 250;
-
-        return highway;
-    }
-
-    private createStreet(node: TreeNodeInterface, version: VersionInterface): Street {
+    private createFerry(
+        key: string,
+        start: PointInterface,
+        end: PointInterface,
+        version: VersionInterface
+    ): Ferry {
         const defaultLayout = {
             "dimensions.length": this.getOption("street.length"),
             "dimensions.height": 1,
             "color": this.getOption("street.color")
         };
 
-        const street = new Street(String(node));
-        street.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
-        
-        street.dimensions.width = 250;
-        street.position.x = 0;
-        street.position.y = 0;
-        street.position.z = 250;
+        const street = new Ferry(key, start, end);
 
         return street;
     }

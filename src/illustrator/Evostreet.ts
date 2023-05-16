@@ -1,9 +1,9 @@
-import {SpecificContainer} from "./container/Container";
-import {Illustrator} from "./Illustrator";
-import {StreetContainer, StreetContainerOptions} from "./container/specific/Streets";
-import {Illustration} from "./components/Illustration";
-import {Point} from "../components/Point";
-import {Shape, Street, House, Highway} from "./components/Shapes";
+import { SpecificContainer } from "./container/Container";
+import { Illustrator } from "./Illustrator";
+import { StreetContainer, StreetContainerOptions } from "./container/specific/Streets";
+import { Illustration } from "./components/Illustration";
+import { Point } from "../components/Point";
+import { Shape, Street, House, Highway } from "./components/Shapes";
 
 export interface EvostreetOptions extends AttributeContainer {
     "layout.snail"?: boolean;
