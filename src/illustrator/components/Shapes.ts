@@ -9,7 +9,7 @@ import { Point } from "../../components/Point";
 export abstract class Shape {
     protected _key: string;
     protected _hasBeenDrawn: boolean;
-    protected _absolutePosition: PointInterface;
+    public _absolutePosition: PointInterface;
     protected _absoluteRotation: number;
     private _attributes: ShapeBaseAttributes;
 
@@ -248,24 +248,52 @@ export class Highway extends Street {
 }
 
 export class Ferry extends Shape {
-    private startCentroid : PointInterface;
-    private endCentroid: PointInterface;
-
-    constructor(key: string, start: PointInterface, end: PointInterface) {
+    constructor(key: string, startHouse: House, endHouse: House) {
         super(key);
         this.updateAttributes({ type: "ferry" });
 
-        this.startCentroid = start;
-        this.endCentroid = end;
+        let smallerHouse = startHouse.displayDimensions.height < endHouse.displayDimensions.height
+            ? startHouse : endHouse;
 
-        this.position.z = this.startCentroid.z < this.endCentroid.z ? this.startCentroid.z : this.endCentroid.z;
-        this.position.x = this.startCentroid.x;
-        this.position.y = this.startCentroid.y;
+        let midPoint = this.midPoint(startHouse._absolutePosition, endHouse._absolutePosition);
 
-        this.dimensions.length = Math.abs(this.startCentroid.y - this.endCentroid.y);
+        this.position.x = midPoint.x;
+        this.position.y = midPoint.y;
+        this.position.z = smallerHouse.centroid3D.z - smallerHouse.dimensions.height / 2;
 
-        this.dimensions.width = Math.abs(this.startCentroid.y - this.endCentroid.y);
+        let newDimensions = this.getGapSizeBetween(startHouse, endHouse);
+
+        this.dimensions.length = newDimensions.length;
+        this.dimensions.width = newDimensions.width;
+        this.dimensions.height = newDimensions.height;
     }
+
+    private midPoint(point1: PointInterface, point2: PointInterface): PointInterface {
+        let mid_x = (point1.x + point2.x) / 2
+        let mid_y = (point1.y + point2.y) / 2
+
+        return new Point(mid_x, mid_y);
+    }
+
+    private getGapSizeBetween(house1: House, house2: House) : CuboidInterface {
+        const gap_x = Math.abs(house1._absolutePosition.x - house2._absolutePosition.x);
+        const gap_y = Math.abs(house1._absolutePosition.y - house2._absolutePosition.y);
+
+        let length_new, width_new;
+        if (gap_x < gap_y) {
+            length_new = gap_x;
+            width_new = gap_y;
+        } else {
+            length_new = gap_y;
+            width_new = gap_x;
+        }
+
+        let smallerHouse = house1.displayDimensions.height < house2.displayDimensions.height
+            ? house1 : house2;
+
+        return new Cuboid(length_new, width_new, smallerHouse.dimensions.height)
+    }
+
 
     public finalize() {
     }

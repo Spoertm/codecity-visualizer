@@ -42,6 +42,8 @@ export class Island extends Illustrator {
             "house.margin": 3,
             "house.color": 0x1A212E,
 
+            "street.color": 0x004cc7,
+
             "platform.height": 10,
             "platform.color": 0xFF0000,
 
@@ -157,13 +159,13 @@ export class Island extends Illustrator {
 
         let houses: House[] = this.findHouses(islandModel.shapes);
 
-        let embedHelperHouse = houses.filter(s => s.key.includes("EmbedHelper.cs"))[0];
-        let ddStatsResponseHouse = houses.filter(s => s.key.includes("DdStatsFullRunResponse.cs"))[0];
+        let firstHouse = houses.filter(s => s.key.includes("EmbedHelper.cs"))[0];
+        let secondHouse = houses.filter(s => s.key.includes("SplitsModule.cs"))[0];
 
         let newferry = this.createFerry(
-            "EmbedHelper-DdStatsFullRunResponse",
-            embedHelperHouse.centroid3D,
-            ddStatsResponseHouse.centroid3D,
+            "House1-House2",
+            firstHouse,
+            secondHouse,
             version);
 
         roadContainer.add(newferry);
@@ -191,17 +193,16 @@ export class Island extends Illustrator {
 
     private createFerry(
         key: string,
-        start: PointInterface,
-        end: PointInterface,
+        start: House,
+        end: House,
         version: VersionInterface
     ): Ferry {
         const defaultLayout = {
-            "dimensions.length": this.getOption("street.length"),
-            "dimensions.height": 1,
             "color": this.getOption("street.color")
         };
 
         const street = new Ferry(key, start, end);
+        street.updateAttributes(defaultLayout);
 
         return street;
     }
