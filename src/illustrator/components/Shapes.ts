@@ -9,7 +9,7 @@ import { Point } from "../../components/Point";
 export abstract class Shape {
     protected _key: string;
     protected _hasBeenDrawn: boolean;
-    public _absolutePosition: PointInterface;
+    protected _absolutePosition: PointInterface;
     protected _absoluteRotation: number;
     private _attributes: ShapeBaseAttributes;
 
@@ -28,6 +28,13 @@ export abstract class Shape {
             position: new Point(),
             rotation: 0
         };
+    }
+
+    /**
+     * Get the absolute position of the shape
+     */
+    public get absolutePosition(): PointInterface {
+        return this._absolutePosition;
     }
 
     /**
@@ -255,7 +262,7 @@ export class Ferry extends Shape {
         let smallerHouse = startHouse.displayDimensions.height < endHouse.displayDimensions.height
             ? startHouse : endHouse;
 
-        let midPoint = this.midPoint(startHouse._absolutePosition, endHouse._absolutePosition);
+        let midPoint = this.midPoint(startHouse.absolutePosition, endHouse.absolutePosition);
 
         this.position.x = midPoint.x;
         this.position.y = midPoint.y;
@@ -276,8 +283,8 @@ export class Ferry extends Shape {
     }
 
     private getGapSizeBetween(house1: House, house2: House) : CuboidInterface {
-        const gap_x = Math.abs(house1._absolutePosition.x - house2._absolutePosition.x);
-        const gap_y = Math.abs(house1._absolutePosition.y - house2._absolutePosition.y);
+        const gap_x = Math.abs(house1.absolutePosition.x - house2.absolutePosition.x);
+        const gap_y = Math.abs(house1.absolutePosition.y - house2.absolutePosition.y);
 
         let length_new, width_new;
         if (gap_x < gap_y) {
