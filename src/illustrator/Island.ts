@@ -1,14 +1,12 @@
 import { Illustrator } from "./Illustrator";
-import { Container, SpecificContainer, UniversalContainer } from "./container/Container";
+import { Container, SpecificContainer } from "./container/Container";
 import { DistrictContainerOptions } from "./container/specific/Districts";
 import { Point } from "../components/Point";
 import { Illustration } from "./components/Illustration";
-import { Shape, House, Street, Ferry } from "./components/Shapes";
+import { Shape, House, Ferry } from "./components/Shapes";
 import { PlatformContainer } from "./container/universal/Platform";
 import { IslandContainer } from "./container/specific/IslandContainer";
 import { Lightmap } from "./container/universal/Lightmap";
-import { ConnectionContainer } from "./container/specific/ConnectionContainer";
-import { Version } from "../components/Version";
 
 export interface IslandOptions extends AttributeContainer {
     "layout.tower"?: boolean;
@@ -62,15 +60,8 @@ export class Island extends Illustrator {
 
         islandModel.draw(origin, rotation);
 
-        let roadsContainer = this.handleRoads(islandModel, version);
-        roadsContainer.draw(origin, rotation);
-
         const illustration = new Illustration(version);
         for (const shape of islandModel.getSpatialInformation()) {
-            illustration.addShape(shape);
-        }
-
-        for (const shape of roadsContainer.getSpatialInformation()) {
             illustration.addShape(shape);
         }
 
@@ -152,26 +143,6 @@ export class Island extends Illustrator {
         house.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
 
         return house;
-    }
-
-    private handleRoads(islandModel: Container, version: VersionInterface): ConnectionContainer {
-        let roadContainer = new ConnectionContainer("CC");
-
-        let houses: House[] = this.findHouses(islandModel.shapes);
-
-        let firstHouse = houses.filter(s => s.key.includes("EmbedHelper.cs"))[0];
-        let secondHouse = houses.filter(s => s.key.includes("SplitsModule.cs"))[0];
-
-        let newferry = this.createFerry(
-            "House1-House2",
-            firstHouse,
-            secondHouse,
-            version);
-
-        roadContainer.add(newferry);
-        roadContainer.finalize();
-
-        return roadContainer;
     }
 
     private findHouses(shapes: Shape[]): House[] {
