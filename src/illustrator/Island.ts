@@ -59,7 +59,7 @@ export class Island extends Illustrator {
         var pos = new Point(0, 0, 0);
         const rotation = 0;
         const columns = 3;
-        const margin = 1200;
+        const margin = 1500;
 
         for (let i = 0; i < islandModels.length; i++) {
             const island = islandModels[i];
