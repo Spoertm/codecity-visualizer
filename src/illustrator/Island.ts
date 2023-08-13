@@ -3,10 +3,10 @@ import { Container, SpecificContainer } from "./container/Container";
 import { DistrictContainerOptions } from "./container/specific/Districts";
 import { Point } from "../components/Point";
 import { Illustration } from "./components/Illustration";
-import { Shape, House, Ferry } from "./components/Shapes";
+import { Shape, House } from "./components/Shapes";
 import { PlatformContainer } from "./container/universal/Platform";
 import { IslandContainer } from "./container/specific/IslandContainer";
-import { Lightmap } from "./container/universal/Lightmap";
+import { TreeNode } from "../components/TreeNode";
 
 export interface IslandOptions extends AttributeContainer {
     "layout.tower"?: boolean;
@@ -53,29 +53,56 @@ export class Island extends Illustrator {
     }
 
     public draw(version: VersionInterface): Illustration {
-        const islandModel: Container = this.createIslandsContainer(this._model.getTree(), version);
+        const srcNode = this._model.getTree().find("lucene-solr:src/java/org/apache/lucene") as TreeNodeInterface;
+        const islandModels = this.createIslandModels(srcNode, version);
 
-        var origin = new Point(0, 0, 0);
+        var pos = new Point(0, 0, 0);
         const rotation = 0;
+        const columns = 3;
+        const margin = 1200;
 
-        islandModel.draw(origin, rotation);
+        for (let i = 0; i < islandModels.length; i++) {
+            const island = islandModels[i];
+            island.draw(pos, rotation);
+            pos.x += margin;
+
+            if (i % columns === 0) {
+                pos.x = 0;
+                pos.y -= margin;
+            }
+        }
 
         const illustration = new Illustration(version);
-        for (const shape of islandModel.getSpatialInformation()) {
-            illustration.addShape(shape);
+        for (const island of islandModels) {
+            for (const shape of island.getSpatialInformation()) {
+                illustration.addShape(shape);
+            }
         }
 
         return illustration;
     }
 
-    private createIslandsContainer(tree: TreeNodeInterface, version: VersionInterface): Container {
-        let lightmap = new Lightmap(String(this._model.getTree()));
+    private createIslandModels(tree: TreeNodeInterface, version: VersionInterface): Shape[] {
+        const islands: Shape[] = [];
 
         for (const childNode of tree.children) {
-            lightmap.add(this.createSpatialModel(childNode, version));
+            let childName = (childNode as TreeNode).toString();
+            if (childName.includes(".") || childName.includes("messages"))
+                continue;
+
+            if (childName.includes("util")) {
+                const messagesNode = tree.find("lucene-solr:src/java/org/apache/lucene/messages") as TreeNodeInterface;
+                const messagesModel = this.createSpatialModel(messagesNode, version);
+                const utilModel = this.createSpatialModel(childNode, version) as Container;
+                utilModel.add(messagesModel);
+                islands.push(utilModel);
+                continue;
+            }
+
+            islands.push(this.createSpatialModel(childNode, version));
         }
 
-        return lightmap;
+        return islands;
     }
 
     private createSpatialModel(tree: TreeNodeInterface, version: VersionInterface): Shape {
@@ -143,38 +170,5 @@ export class Island extends Illustrator {
         house.updateAttributes(Object.assign(defaultLayout, this.applyRules(this._model, node, version)));
 
         return house;
-    }
-
-    private findHouses(shapes: Shape[]): House[] {
-        const houses: House[] = [];
-
-        for (const shape of shapes) {
-            if (shape instanceof House) {
-                houses.push(shape);
-            }
-
-            if (shape instanceof Container) {
-                const childHouses = this.findHouses(shape.shapes);
-                houses.push(...childHouses);
-            }
-        }
-
-        return houses;
-    }
-
-    private createFerry(
-        key: string,
-        start: House,
-        end: House,
-        version: VersionInterface
-    ): Ferry {
-        const defaultLayout = {
-            "color": this.getOption("street.color")
-        };
-
-        const street = new Ferry(key, start, end);
-        street.updateAttributes(defaultLayout);
-
-        return street;
     }
 }
