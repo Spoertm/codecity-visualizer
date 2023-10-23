@@ -146,10 +146,6 @@ export abstract class Shape {
             this.position.z
         );
 
-        if (this instanceof Street) {
-            console.log('test');
-        }
-
         this._absolutePosition = new Point(
             parentPosition.x + transformedRelativePosition.x,
             parentPosition.y + transformedRelativePosition.y,
